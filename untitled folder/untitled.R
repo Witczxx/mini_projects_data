@@ -1,9 +1,9 @@
-
-# All needed Libraries
+# Loading Libraries
 library(tidyverse)
+library(viridis)
 
-# Source: Statistisches Bundesamt (Destatis, 2021)
-# Ausgwählte Kennzahlen nach Fachabteilung 2019
+# Creating Tibble for the hospital dataset of 2019 
+# [Source: Statistisches Bundesamt (Destatis, 2022)]
 KHR_2019 <- tribble(
   ~Abteilung,  ~Abt_Anzahl, ~Abt_Betten, ~Nutzungsgrad, ~Fallzahl, ~Avg_Verweildauer,
   "Innere Medizin", 1047, 111481, 78.1, 5889078, 5.4,
@@ -45,8 +45,8 @@ KHR_2019 <- tribble(
   "Sonstige Fachabteilung", 305, 6481, 73.5, 269292, 6.5
 )
 
-# Source: Statistisches Bundesamt (Destatis, 2024)
-# Ausgwählte Kennzahlen nach Fachabteilung 2022
+# Creating Tibble for the hospital dataset of 2019 
+# [Source: Statistisches Bundesamt (Destatis, 2024)]
 KHR_2022 <- tribble(
   ~Abteilung,  ~Abt_Anzahl, ~Abt_Betten, ~Nutzungsgrad, ~Fallzahl, ~Avg_Verweildauer,
   "Innere Medizin", 1002, 102760, 69.6, 4881453, 5.3,
@@ -88,4 +88,75 @@ KHR_2022 <- tribble(
   "Sonstige Fachabteilung", 306, 6677, 65.3, 283321, 5.6
 )
 
+# Overview of Bednumbers by ward
+KHR_2019 |> 
+  mutate(Abteilung = fct_reorder(Abteilung, Abt_Betten)) |> 
+  ggplot(aes(y = Abteilung, x = Abt_Betten)) +
+  geom_col()
+
+# Overview of Cases by ward
+KHR_2019 |> 
+  mutate(Abteilung = fct_reorder(Abteilung, Fallzahl)) |> 
+  ggplot(aes(y = Abteilung, x = Fallzahl)) +
+  geom_col()
+
+# Bednumber/Cases Analysis: There is a clear relation
+ggplot(KHR_2019, aes(x = Fallzahl, y = Abt_Betten)) +
+  geom_jitter() +
+  geom_smooth()
+
+
+?fct_reorder
+# Calculations for Visualization
+KHR_2019_long <- KHR_2019 |> 
+  mutate(Abteilung = fct_reorder(Abteilung, Fallzahl, .desc = TRUE)) |> # Arranging wards by case-numbers
+  rename(Bettenzahl = Abt_Betten) |> # better readability in plot
+  arrange(desc(Fallzahl)) |>
+  mutate(rel_cumsum_Fallzahl = cumsum(Fallzahl) / sum(Fallzahl)) |>
+  filter(rel_cumsum_Fallzahl <= 0.8) |> # filtering top 80% of wards [reduced ward-nr of 37 to 10]
+  pivot_longer(cols = c(Bettenzahl, Fallzahl),
+               names_to = "Kennzahl",
+               values_to = "Wert") |> # 2 main variable titles become rows in the tibble
+  group_by(Kennzahl) |>
+  mutate(Anteil = Wert / sum(Wert)) # Bug-Fix: paste0() was not working - put calculation out of plot
+
+# Creating the Plot
+  ggplot(data = KHR_2019_long, aes(x = Kennzahl, y = Wert, fill = Abteilung)) +
+    geom_col(position = "fill") +  # position = "fill" -> all values scale to 100% independently
+    geom_text(data = filter(KHR_2019_long, Kennzahl == "Fallzahl"), # Fallzahl separated (cause different scale)
+              aes(label = paste0(round(Anteil * 100, 0), "%")), # calculation oustources - Bug-Fix
+                  position = position_fill(vjust = 0.5), # necesarry to define positioning / filling the value
+                  color = "white",
+                  size = 3) +
+    geom_text(data = filter(KHR_2019_long, Kennzahl == "Bettenzahl"), # Bettenzahl separated (cause different scale)
+              aes(label = paste0(round(Anteil * 100, 0), "%")), # calculation oustources - Bug-Fix
+                  position = position_fill(vjust = 0.5), # necesarry to define positioning / filling the value
+                  color = "white", 
+                  size = 3) +
+    scale_y_continuous(labels = scales::percent) +
+    theme_minimal() +
+    scale_fill_viridis_d(option = "turbo", direction = -1) + # coloring scheme [viridis library]
+    labs(x = "", y = "", 
+         title = "Verteilung von Fallzahlen und Betten in deutschen Krankenhäusern (2019)",
+         subtitle = "Top 10 Abteilungen, die zusammen 80% aller Fallzahlen abdecken",
+         caption = "Quelle: Statistisches Bundesamt (Destatis, 2021)")
+
+
+# Psychiatry - Explanation for low case number with secondary variable Avg_Verweildauer
+KHR_2019 |> 
+   arrange(desc(Fallzahl)) |>
+  mutate(rel_cumsum_Fallzahl = cumsum(Fallzahl) / sum(Fallzahl)) |> 
+  filter(rel_cumsum_Fallzahl <= 0.8) |> 
+  mutate(Abteilung = fct_reorder(Abteilung, Avg_Verweildauer)) |> 
+  ggplot(aes(y = Abteilung, x = Avg_Verweildauer)) +
+  geom_col()
+
+# No real explanation for higher case numbers in Internal ward to ind
+KHR_2019 |> 
+   arrange(desc(Fallzahl)) |>
+  mutate(rel_cumsum_Fallzahl = cumsum(Fallzahl) / sum(Fallzahl)) |> 
+  filter(rel_cumsum_Fallzahl <= 0.8) |>
+  mutate(Abteilung = fct_reorder(Abteilung, Nutzungsgrad)) |> 
+  ggplot(aes(y = Abteilung, x = Nutzungsgrad)) +
+  geom_col()
 
