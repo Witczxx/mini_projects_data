@@ -10,7 +10,7 @@ Each project focuses on a specific question or dataset and documents the workflo
 
 This project analyzes the **relationship between hospital bed capacities and patient case numbers** in German hospital wards (data from 2019). The aim was to explore whether resources and workload are balanced across different specialties.
 
-Steps of the Analysis include:
+Key Points:
 <ul>
     <li>Comparison of bed numbers and case numbers across multiple hospital wards in Germany</li>
     <li>Identification of wards with disproportionate capacities or workloads</li>
