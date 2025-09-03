@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.32">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Patrick Witczak">
+<meta name="dcterms.date" content="2025-09-02">
+
+<title>Data analysis:  Distribution of case numbers and beds  in German hospital wards (2019)</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="documentation_english_files/libs/clipboard/clipboard.min.js"></script>
+<script src="documentation_english_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="documentation_english_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="documentation_english_files/libs/quarto-html/popper.min.js"></script>
+<script src="documentation_english_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="documentation_english_files/libs/quarto-html/anchor.min.js"></script>
+<link href="documentation_english_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="documentation_english_files/libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="documentation_english_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="documentation_english_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="documentation_english_files/libs/bootstrap/bootstrap-81267100e462c21b3d6c0d5bf76a3417.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body style="text-align: justify;" class="quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="../../../documentation_english.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Data analysis:<br> Distribution of case numbers and beds<br> in German hospital wards (2019)</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Patrick Witczak </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">September 2, 2025</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+
+<section id="introduction-objective" class="level1">
+<h1>Introduction [Objective]</h1>
+<p>This analysis examines how the care capacities of German hospitals in 2019 relate to their actual workload. For this purpose, the caseloads and bed numbers of all hospital wards are compared. The year 2019 represents typical hospital care before the COVID-19 pandemic. This comparison reveals differences between available capacities and patient demand. Since such differences can be influenced by various factors, additional variables are used to further deepen the analysis.</p>
+</section>
+<section id="dataset-selection-and-import" class="level1">
+<h1>Dataset Selection and Import</h1>
+<p>The analysis was originally intended to use the official data from the Federal Statistical Office (Destatis). However, since direct access is subject to a fee, the freely accessible figures from the hospital reports (Springer Verlag, 2022) were used instead. These refer to the official Destatis data and represent the values ​​for 2019. Since the dataset is manageable in size, with around 40 departments, it was imported manually using the tribble() function from the tidyverse package. This allowed the dataset to be created and further processed directly in R:</p>
+<div style="page-break-after: always;"></div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>KHR_2019 <span class="ot">&lt;-</span> <span class="fu">tribble</span>(</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="sc">~</span>Abteilung,  <span class="sc">~</span>Abt_Anzahl, <span class="sc">~</span>Abt_Betten, </span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="sc">~</span>Nutzungsgrad, <span class="sc">~</span>Fallzahl, <span class="sc">~</span>Avg_Verweildauer,</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Innere Medizin"</span>, <span class="dv">1047</span>, <span class="dv">111481</span>, <span class="fl">78.1</span>, <span class="dv">5889078</span>, <span class="fl">5.4</span>,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Geriatrie"</span>, <span class="dv">322</span>, <span class="dv">18101</span>, <span class="fl">86.9</span>, <span class="dv">374462</span>, <span class="fl">15.3</span>,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Kardiologie"</span>, <span class="dv">206</span>, <span class="dv">14800</span>, <span class="fl">83.6</span>, <span class="dv">955424</span>, <span class="fl">4.7</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Nephrologie"</span>, <span class="dv">62</span>, <span class="dv">2186</span>, <span class="fl">83.5</span>, <span class="dv">96053</span>, <span class="fl">6.9</span>,</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Hämatologie und internistische Onkologie"</span>, <span class="dv">102</span>, <span class="dv">5096</span>, <span class="fl">79.9</span>, <span class="dv">201198</span>, <span class="fl">7.4</span>,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Endokrinologie"</span>, <span class="dv">18</span>, <span class="dv">501</span>, <span class="fl">83.3</span>, <span class="dv">23432</span>, <span class="fl">6.5</span>,</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Gastroenterologie"</span>, <span class="dv">126</span>, <span class="dv">7203</span>, <span class="fl">82.5</span>, <span class="dv">418259</span>, <span class="fl">5.2</span>,</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Pneumologie"</span>, <span class="dv">64</span>, <span class="dv">3689</span>, <span class="fl">79.4</span>, <span class="dv">178007</span>, <span class="fl">6.0</span>,</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Rheumatologie"</span>, <span class="dv">33</span>, <span class="dv">1096</span>, <span class="fl">72.1</span>, <span class="dv">38126</span>, <span class="fl">7.6</span>,</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Pädiatrie"</span>, <span class="dv">339</span>, <span class="dv">15447</span>, <span class="fl">63.2</span>, <span class="dv">926516</span>, <span class="fl">3.8</span>,</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Kinderkardiologie"</span>, <span class="dv">23</span>, <span class="dv">588</span>, <span class="fl">65.0</span>, <span class="dv">19087</span>, <span class="fl">7.3</span>,</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Neonatologie"</span>, <span class="dv">99</span>, <span class="dv">2097</span>, <span class="fl">72.3</span>, <span class="dv">56492</span>, <span class="fl">9.8</span>,</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Kinderchirugie"</span>, <span class="dv">83</span>, <span class="dv">1592</span>, <span class="fl">63.8</span>, <span class="dv">124763</span>, <span class="fl">3.0</span>,</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Lungen- und Bronchialheilkunde"</span>, <span class="dv">18</span>, <span class="dv">1775</span>, <span class="fl">69.5</span>, <span class="dv">62763</span>, <span class="fl">7.2</span>,</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Allgemeine Chirugie"</span>, <span class="dv">1068</span>, <span class="dv">67902</span>, <span class="fl">69.8</span>, <span class="dv">3195674</span>, <span class="fl">5.4</span>,</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Unfallchirugie"</span>, <span class="dv">308</span>, <span class="dv">17303</span>, <span class="fl">78.1</span>, <span class="dv">840038</span>, <span class="fl">5.9</span>,</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Neurochirugie"</span>, <span class="dv">178</span>, <span class="dv">6642</span>, <span class="fl">77.6</span>, <span class="dv">256956</span>, <span class="fl">7.3</span>,</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Gefäßchirugie"</span>, <span class="dv">186</span>, <span class="dv">5529</span>, <span class="fl">72.3</span>, <span class="dv">189430</span>, <span class="fl">7.7</span>,</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Plastische Chirugie"</span>, <span class="dv">132</span>, <span class="dv">1936</span>, <span class="fl">69.2</span>, <span class="dv">89349</span>, <span class="fl">5.5</span>,</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Thoraxchirugie"</span>, <span class="dv">56</span>, <span class="dv">1546</span>, <span class="fl">67.8</span>, <span class="dv">50570</span>, <span class="fl">7.6</span>,</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Herzchirugie"</span>, <span class="dv">71</span>, <span class="dv">4614</span>, <span class="fl">77.5</span>, <span class="dv">152524</span>, <span class="fl">8.6</span>,</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Urologie"</span>, <span class="dv">500</span>, <span class="dv">14036</span>, <span class="fl">74.4</span>, <span class="dv">886904</span>, <span class="fl">4.3</span>,</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Orthopädie"</span>, <span class="dv">435</span>, <span class="dv">23078</span>, <span class="fl">68.5</span>, <span class="dv">904191</span>, <span class="fl">6.4</span>,</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Frauenheilkunde und Geburtshilfe"</span>, <span class="dv">759</span>, <span class="dv">25039</span>, <span class="fl">60.8</span>, <span class="dv">1548418</span>, <span class="fl">3.6</span>,</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Geburtshilfe"</span>, <span class="dv">86</span>, <span class="dv">2205</span>, <span class="fl">78.3</span>, <span class="dv">180552</span>, <span class="fl">3.5</span>,</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Hals-, Nasen-, Ohrenheilkunde"</span>, <span class="dv">592</span>, <span class="dv">8672</span>, <span class="fl">60.5</span>, <span class="dv">562945</span>, <span class="fl">3.4</span>,</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Augenheilkunde"</span>, <span class="dv">264</span>, <span class="dv">4219</span>, <span class="fl">65.4</span>, <span class="dv">360377</span>, <span class="fl">2.8</span>,</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Neurologie"</span>, <span class="dv">455</span>, <span class="dv">26716</span>, <span class="fl">81.2</span>, <span class="dv">1092503</span>, <span class="fl">7.2</span>,</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Allgemeine Psychiatrie"</span>, <span class="dv">394</span>, <span class="dv">57269</span>, <span class="fl">94.0</span>, <span class="dv">769076</span>, <span class="fl">24.7</span>,</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Kinder- und Jugendpsychiatrie"</span>, <span class="dv">144</span>, <span class="dv">6696</span>, <span class="fl">88.7</span>, <span class="dv">59578</span>, <span class="fl">36.4</span>,</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Psychosomatik/Psychotherapie"</span>, <span class="dv">275</span>, <span class="dv">12394</span>, <span class="fl">90.1</span>, <span class="dv">93160</span>, <span class="fl">43.7</span>,</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Nuklearmedizin"</span>, <span class="dv">96</span>, <span class="dv">724</span>, <span class="fl">44.9</span>, <span class="dv">36061</span>, <span class="fl">3.3</span>,</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Strahlenheilkunde"</span>, <span class="dv">145</span>, <span class="dv">2489</span>, <span class="fl">68.8</span>, <span class="dv">70938</span>, <span class="fl">8.8</span>,</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Dermatologie"</span>, <span class="dv">109</span>, <span class="dv">4575</span>, <span class="fl">77.3</span>, <span class="dv">240506</span>, <span class="fl">5.4</span>,</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Zahn- und Kieferheilkunde, Mund- und Kieferchirugie"</span>, </span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>  <span class="dv">183</span>, <span class="dv">2041</span>, <span class="fl">65.4</span>, <span class="dv">116377</span>, <span class="fl">4.2</span>,</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Intensivmedizin"</span>, <span class="dv">260</span>, <span class="dv">6568</span>, <span class="fl">77.0</span>, <span class="dv">474544</span>, <span class="fl">3.9</span>,</span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Sonstige Fachabteilung"</span>, <span class="dv">305</span>, <span class="dv">6481</span>, <span class="fl">73.5</span>, <span class="dv">269292</span>, <span class="fl">6.5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="dataset-overview" class="level1">
+<h1>Dataset Overview</h1>
+<section id="variable-description" class="level2">
+<h2 class="anchored" data-anchor-id="variable-description">Variable Description</h2>
+<p>The dataset includes the following variables:</p>
+<strong>Primary Variables for Analysis</strong>
+<ul>
+<li>
+<strong>Dept_Beds:</strong> Total number of beds per department
+</li>
+<li>
+<strong>Case Count:</strong> Total number of cases per department
+</li>
+</ul>
+<strong>Additional Variables for In-Depth Analysis</strong>
+<ul>
+<li>
+<strong>Dept_Number:</strong> Number of facilities with the respective department
+</li>
+<li>
+<strong>Utilization Rate:</strong> Average bed occupancy rate (in %)
+</li>
+<li>
+<strong>Avg_Length_of_Stay:</strong> Average length of stay per case (in days)/li&gt;
+</li></ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(KHR_2019)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 6
+  Abteilung         Abt_Anzahl Abt_Betten Nutzungsgrad Fallzahl Avg_Verweildauer
+  &lt;chr&gt;                  &lt;dbl&gt;      &lt;dbl&gt;        &lt;dbl&gt;    &lt;dbl&gt;            &lt;dbl&gt;
+1 Innere Medizin          1047     111481         78.1  5889078              5.4
+2 Geriatrie                322      18101         86.9   374462             15.3
+3 Kardiologie              206      14800         83.6   955424              4.7
+4 Nephrologie               62       2186         83.5    96053              6.9
+5 Hämatologie und …        102       5096         79.9   201198              7.4
+6 Endokrinologie            18        501         83.3    23432              6.5</code></pre>
+</div>
+</div>
+</section>
+<section id="distribution-of-bed-numbers-by-department" class="level2">
+<h2 class="anchored" data-anchor-id="distribution-of-bed-numbers-by-department">Distribution of bed numbers by department</h2>
+<p>The comparison of bed numbers reveals a strong concentration: Less than half of the 37 departments account for an estimated more than 80% of all hospital beds. This highlights the central importance of major basic specialties such as internal medicine or general surgery, while highly specialized specialties naturally have significantly smaller bed capacities.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>KHR_2019 <span class="sc">|&gt;</span> </span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Abteilung =</span> <span class="fu">fct_reorder</span>(Abteilung, Abt_Betten)) <span class="sc">|&gt;</span> </span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">y =</span> Abteilung, <span class="at">x =</span> Abt_Betten)) <span class="sc">+</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>() <span class="sc">+</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Bettenzahlen nach Fachabteilung (2019)"</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Anzahl der Betten"</span>,</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Fachabteilung"</span>,</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">caption =</span> <span class="st">"Quelle: Statistisches Bundesamt (Destatis, 2021)"</span>) <span class="sc">+</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">7</span>)) <span class="sc">+</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">7</span>)) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="documentation_english_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="distribution-of-case-numbers-per-department" class="level2">
+<h2 class="anchored" data-anchor-id="distribution-of-case-numbers-per-department">Distribution of case numbers per department</h2>
+<p>The distribution of case numbers shows a similar pattern to the number of beds: a large proportion of cases are concentrated in a few large departments. At first glance, the two variables appear closely related, although there are deviations in individual departments. This relationship is examined in the next step of the analysis using a scatterplot.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>KHR_2019 <span class="sc">|&gt;</span> </span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Abteilung =</span> <span class="fu">fct_reorder</span>(Abteilung, Fallzahl)) <span class="sc">|&gt;</span> </span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">y =</span> Abteilung, <span class="at">x =</span> Fallzahl)) <span class="sc">+</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>() <span class="sc">+</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Fallzahlen nach Fachabteilung (2019)"</span>,</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Fallzahl"</span>,</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Fachabteilung"</span>,</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">caption =</span> <span class="st">"Quelle: Statistisches Bundesamt (Destatis, 2021)"</span>) <span class="sc">+</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">7</span>)) <span class="sc">+</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">7</span>)) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="documentation_english_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="analysis-through-visualizations" class="level1">
+<h1>Analysis through visualizations</h1>
+<section id="bed-and-case-numbers-correlation-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="bed-and-case-numbers-correlation-analysis">Bed and case numbers: Correlation analysis</h2>
+<p>The analysis indicates a positive linear relationship between case numbers and bed numbers: Departments with higher case numbers tend to have more beds. Despite this general linearity, individual departments show deviations from the trend line. Due to the small number of 37 observations, interpretations should be cautious. Further analyses can investigate possible causes of these deviations.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(KHR_2019, <span class="fu">aes</span>(<span class="at">x =</span> Fallzahl, <span class="at">y =</span> Abt_Betten)) <span class="sc">+</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.6</span>, <span class="at">color =</span> <span class="st">"steelblue"</span>) <span class="sc">+</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">color =</span> <span class="st">"red"</span>, <span class="at">se =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Beziehung zwischen Fallzahlen und Bettenzahlen (2019)"</span>,</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Fallzahlen"</span>,</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Bettenzahlen"</span>,</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">caption =</span> <span class="st">"Quelle: Statistisches Bundesamt (Destatis, 2021)"</span>) <span class="sc">+</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="documentation_english_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="top-10-departments-80-of-case-numbers-and-corresponding-bed-numbers" class="level2">
+<h2 class="anchored" data-anchor-id="top-10-departments-80-of-case-numbers-and-corresponding-bed-numbers">Top 10 Departments: <br>80% of case numbers and corresponding bed numbers</h2>
+<section id="problems" class="level3">
+<h3 class="anchored" data-anchor-id="problems">Problems</h3>
+The aim of the analysis was to create a direct comparison of case numbers and bed numbers in German hospital wards. The following challenges arose:
+<ul>
+<li>
+The data contains many highly specialized wards with low case numbers, which makes the visualization confusing.
+</li>
+<li>
+The original structure of the dataset is not suitable for a direct comparison of the two key figures.
+</li>
+<li>
+Case numbers and bed numbers are on very different scales, which makes normalization necessary.
+</li>
+</ul>
+<p>These problems led to the application of <strong>Pareto logic</strong> and a <strong>restructuring of the dataset</strong>.</p>
+</section>
+<section id="pareto-logic" class="level3">
+<h3 class="anchored" data-anchor-id="pareto-logic">Pareto Logic</h3>
+<p>To reduce the number of wards displayed while still obtaining representative results, Pareto logic was applied to the caseload. Only the largest wards, which together account for 80% of the caseload, were selected. This reduced the number of wards from 37 to 10, keeping the visualization clear and highlighting the most important departments.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>KHR_2019 <span class="sc">|&gt;</span> </span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(Fallzahl)) <span class="sc">|&gt;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">rel_cumsum_Fallzahl =</span> <span class="fu">cumsum</span>(Fallzahl) <span class="sc">/</span> <span class="fu">sum</span>(Fallzahl)) <span class="sc">|&gt;</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Top 80% der Abteilungen</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(rel_cumsum_Fallzahl <span class="sc">&lt;=</span> <span class="fl">0.8</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Abteilung, Fallzahl, rel_cumsum_Fallzahl)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 10 × 3
+   Abteilung                        Fallzahl rel_cumsum_Fallzahl
+   &lt;chr&gt;                               &lt;dbl&gt;               &lt;dbl&gt;
+ 1 Innere Medizin                    5889078               0.270
+ 2 Allgemeine Chirugie               3195674               0.417
+ 3 Frauenheilkunde und Geburtshilfe  1548418               0.488
+ 4 Neurologie                        1092503               0.538
+ 5 Kardiologie                        955424               0.582
+ 6 Pädiatrie                          926516               0.624
+ 7 Orthopädie                         904191               0.666
+ 8 Urologie                           886904               0.706
+ 9 Unfallchirugie                     840038               0.745
+10 Allgemeine Psychiatrie             769076               0.780</code></pre>
+</div>
+</div>
+</section>
+<section id="change-to-the-dataset-structure" class="level3">
+<h3 class="anchored" data-anchor-id="change-to-the-dataset-structure">02 Change to the dataset structure</h3>
+For visualization, it is impractical to have bed numbers and case numbers in separate columns. Therefore, the two numeric variables were transformed into a numeric variable (value) and a categorical variable (key figure):
+<ul>
+<li>
+<code>Key figure</code> contains the name of the original variable (“Dept_Beds” or “Case number”).
+</li>
+<li>
+<code>Value</code> contains the corresponding numbers.
+</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>KHR_2019 <span class="sc">|&gt;</span> </span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 2 Hauptvariabel-Titel werden zu Spalten im Tibble </span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">c</span>(Abt_Betten, Fallzahl),</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">"Kennzahl"</span>,</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">"Wert"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Abteilung, Kennzahl, Wert) <span class="sc">|&gt;</span> </span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 3
+  Abteilung      Kennzahl      Wert
+  &lt;chr&gt;          &lt;chr&gt;        &lt;dbl&gt;
+1 Innere Medizin Abt_Betten  111481
+2 Innere Medizin Fallzahl   5889078
+3 Geriatrie      Abt_Betten   18101
+4 Geriatrie      Fallzahl    374462
+5 Kardiologie    Abt_Betten   14800
+6 Kardiologie    Fallzahl    955424</code></pre>
+</div>
+</div>
+<p>This transformation makes it possible to display both key figures in a single plot.</p>
+</section>
+<section id="relativizing-the-numbers" class="level3">
+<h3 class="anchored" data-anchor-id="relativizing-the-numbers">03 Relativizing the Numbers</h3>
+<p>Since the bed counts reflect five-digit values, while the case counts reflect seven-digit values, a direct comparison is not meaningful. For comparability, the values ​​were scaled to 100% using the <code>geom_col(position = "fill")</code> function, so that the bars represent the relative proportions of the departments.</p>
+</section>
+<section id="the-analysis" class="level3">
+<h3 class="anchored" data-anchor-id="the-analysis">The Analysis</h3>
+<p>The ratios between case numbers and bed numbers can be directly compared in the form of <strong>two stacked 100% bar charts</strong>. This representation clarifies which departments are disproportionately or under-equipped with beds and provides initial indications of potential peculiarities in capacity planning.</p>
+While most departments show almost identical relative shares in both key figures, the following outliers are particularly noticeable:
+<ul>
+<li>
+<strong>General Psychiatry</strong>, where the relative number of beds is about three times higher than the relative case number.
+</li>
+<li>
+<strong>Internal Medicine</strong>, where the relative number of cases is about 5% higher than the number of beds.
+</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="do">### Laden der Viridis-Bibliothek für das Farbschema</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(viridis)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="do">### Rechnung</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>KHR_2019_long <span class="ot">&lt;-</span> KHR_2019 <span class="sc">|&gt;</span> </span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Sortiere Stationen nach Fallzahlen statt alphabetisch</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Abteilung =</span> <span class="fu">fct_reorder</span>(Abteilung, Fallzahl, <span class="at">.desc =</span> <span class="cn">TRUE</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Für bessere Lesbarkeit in der Visualisierung</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">Bettenzahl =</span> Abt_Betten) <span class="sc">|&gt;</span> </span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Top 80% der Abteilungen</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(Fallzahl)) <span class="sc">|&gt;</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">rel_cumsum_Fallzahl =</span> <span class="fu">cumsum</span>(Fallzahl) <span class="sc">/</span> <span class="fu">sum</span>(Fallzahl)) <span class="sc">|&gt;</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(rel_cumsum_Fallzahl <span class="sc">&lt;=</span> <span class="fl">0.8</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 2 Hauptvariabel-Titel werden zu Spalten im Tibble </span></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">c</span>(Bettenzahl, Fallzahl),</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">"Kennzahl"</span>,</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">"Wert"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Bug-Fix: paste0() funktionierte nicht - Rechnung wurde ausgegliedert</span></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Kennzahl) <span class="sc">|&gt;</span></span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Anteil =</span> Wert <span class="sc">/</span> <span class="fu">sum</span>(Wert)) </span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a><span class="do">### Visualisierung</span></span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="at">data =</span> KHR_2019_long, <span class="fu">aes</span>(</span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> Kennzahl, <span class="at">y =</span> Wert, <span class="at">fill =</span> Abteilung)) <span class="sc">+</span></span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Alle Variablen skalieren unabhängig bis 100% dank position = "fill"</span></span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_col</span>(<span class="at">position =</span> <span class="st">"fill"</span>) <span class="sc">+</span>  </span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Fallzahlen separiert (skalieren unterschiedlich)</span></span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text</span>(<span class="at">data =</span> <span class="fu">filter</span>(KHR_2019_long, Kennzahl <span class="sc">==</span> <span class="st">"Fallzahl"</span>), </span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>              <span class="co"># Rechnung wurde ausgegliedert - Bug-Fix</span></span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>              <span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">paste0</span>(<span class="fu">round</span>(Anteil <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">0</span>), <span class="st">"%"</span>)), </span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>                  <span class="co"># Notwendig, damit Zahl korrekt Diagramm überlappt</span></span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>                  <span class="at">position =</span> <span class="fu">position_fill</span>(<span class="at">vjust =</span> <span class="fl">0.5</span>), </span>
+<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a>                  <span class="at">color =</span> <span class="st">"white"</span>,</span>
+<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>                  <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Bettenzahlen separiert (skalieren unterschiedlich)</span></span>
+<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text</span>(<span class="at">data =</span> <span class="fu">filter</span>(KHR_2019_long, Kennzahl <span class="sc">==</span> <span class="st">"Bettenzahl"</span>), </span>
+<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a>              <span class="co"># Rechnung wurde ausgegliedert - Bug-Fix</span></span>
+<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a>              <span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">paste0</span>(<span class="fu">round</span>(Anteil <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">0</span>), <span class="st">"%"</span>)), </span>
+<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a>                  <span class="co"># Notwendig, damit Zahl korrekt Diagramm überlappt</span></span>
+<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a>                  <span class="at">position =</span> <span class="fu">position_fill</span>(<span class="at">vjust =</span> <span class="fl">0.5</span>), </span>
+<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a>                  <span class="at">color =</span> <span class="st">"white"</span>, </span>
+<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a>                  <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>percent) <span class="sc">+</span></span>
+<span id="cb11-44"><a href="#cb11-44" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb11-45"><a href="#cb11-45" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Farbschema [viridis Bibliothek]</span></span>
+<span id="cb11-46"><a href="#cb11-46" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_fill_viridis_d</span>(<span class="at">option =</span> <span class="st">"turbo"</span>, <span class="at">direction =</span> <span class="sc">-</span><span class="dv">1</span>) <span class="sc">+</span> </span>
+<span id="cb11-47"><a href="#cb11-47" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">""</span>, <span class="at">y =</span> <span class="st">""</span>, </span>
+<span id="cb11-48"><a href="#cb11-48" aria-hidden="true" tabindex="-1"></a>         <span class="at">title =</span> <span class="st">"Verteilung von Fallzahlen und Betten </span></span>
+<span id="cb11-49"><a href="#cb11-49" aria-hidden="true" tabindex="-1"></a><span class="st">         in deutschen Krankenhaus-Stationen (2019)"</span>,</span>
+<span id="cb11-50"><a href="#cb11-50" aria-hidden="true" tabindex="-1"></a>         <span class="at">subtitle =</span> <span class="st">"Top 10 Abteilungen, </span></span>
+<span id="cb11-51"><a href="#cb11-51" aria-hidden="true" tabindex="-1"></a><span class="st">         die zusammen 80% aller Fallzahlen abdecken"</span>,</span>
+<span id="cb11-52"><a href="#cb11-52" aria-hidden="true" tabindex="-1"></a>         <span class="at">caption =</span> <span class="st">"Quelle: Statistisches Bundesamt (Destatis, 2021)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="documentation_english_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+</section>
+<section id="evaluation-of-the-results" class="level1">
+<h1>Evaluation of the results</h1>
+<section id="why-are-case-numbers-so-low-in-psychiatric-wards" class="level2">
+<h2 class="anchored" data-anchor-id="why-are-case-numbers-so-low-in-psychiatric-wards">Why are case numbers so low in psychiatric wards?</h2>
+<p>A look at the average length of stay provides an explanation: In psychiatric wards, patients stay for an average of almost 25 days, while on most other wards the average is around 5 days. The longer occupancy leads to lower patient rotation, which explains the comparatively low case numbers. The following plot shows the average length of stay in the top 10 departments and highlights the special values ​​of the psychiatric wards:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>KHR_2019 <span class="sc">|&gt;</span> </span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>   <span class="fu">arrange</span>(<span class="fu">desc</span>(Fallzahl)) <span class="sc">|&gt;</span> </span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>   <span class="fu">mutate</span>(<span class="at">rel_cumsum_Fallzahl =</span> <span class="fu">cumsum</span>(Fallzahl) <span class="sc">/</span> <span class="fu">sum</span>(Fallzahl)) <span class="sc">|&gt;</span> </span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>   <span class="fu">filter</span>(rel_cumsum_Fallzahl <span class="sc">&lt;=</span> <span class="fl">0.8</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>   <span class="fu">mutate</span>(<span class="at">Abteilung =</span> <span class="fu">fct_reorder</span>(Abteilung, Avg_Verweildauer)) <span class="sc">|&gt;</span> </span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>   <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">y =</span> Abteilung, <span class="at">x =</span> Avg_Verweildauer)) <span class="sc">+</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>   <span class="fu">geom_col</span>() <span class="sc">+</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>   <span class="fu">labs</span>(</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>     <span class="at">x =</span> <span class="st">"Durchschnittliche Verweildauer (Tage)"</span>,</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>     <span class="at">y =</span> <span class="st">"Abteilung"</span>,</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>     <span class="at">title =</span> <span class="st">"Durchschnittliche Verweildauer in Top-10-Abteilungen"</span>,</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>     <span class="at">subtitle =</span> <span class="st">"Psychiatrie fällt durch </span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a><span class="st">     besonders lange Verweildauer auf"</span>) <span class="sc">+</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>   <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="documentation_english_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="why-are-caseloads-so-high-in-internal-medicine" class="level2">
+<h2 class="anchored" data-anchor-id="why-are-caseloads-so-high-in-internal-medicine">Why are caseloads so high in internal medicine?</h2>
+<p>When considering all available variables, no clear reasons for the higher caseload-to-bed ratio could be identified. Interestingly, cardiology shows a similar, but less pronounced, relationship, presumably due to the overlap between the two specialties. It is known that nurses in internal medicine and cardiology are under comparatively high work pressure. This assumption cannot be statistically substantiated with the available data, but it does provide a plausible context. The following plot shows the average utilization rate of the top 10 departments:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>KHR_2019 <span class="sc">|&gt;</span> </span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>   <span class="fu">arrange</span>(<span class="fu">desc</span>(Fallzahl)) <span class="sc">|&gt;</span> </span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>   <span class="fu">mutate</span>(<span class="at">rel_cumsum_Fallzahl =</span> <span class="fu">cumsum</span>(Fallzahl) <span class="sc">/</span> <span class="fu">sum</span>(Fallzahl)) <span class="sc">|&gt;</span> </span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>   <span class="fu">filter</span>(rel_cumsum_Fallzahl <span class="sc">&lt;=</span> <span class="fl">0.8</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>   <span class="fu">mutate</span>(<span class="at">Abteilung =</span> <span class="fu">fct_reorder</span>(Abteilung, Nutzungsgrad)) <span class="sc">|&gt;</span> </span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>   <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">y =</span> Abteilung, <span class="at">x =</span> Nutzungsgrad)) <span class="sc">+</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>   <span class="fu">geom_col</span>() <span class="sc">+</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>   <span class="fu">labs</span>(</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>     <span class="at">x =</span> <span class="st">"Nutzungsgrad (%)"</span>,</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>     <span class="at">y =</span> <span class="st">"Abteilung"</span>,</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>     <span class="at">title =</span> <span class="st">"Durchschnittlicher Betten-Nutzungsgrad </span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a><span class="st">     in Top-10-Abteilungen"</span>,</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>     <span class="at">subtitle =</span> <span class="st">"Innere Medizin und Kardiologie fallen durch </span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="st">     hohe Auslastung auf"</span>) <span class="sc">+</span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>   <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="documentation_english_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="interpretation" class="level2">
+<h2 class="anchored" data-anchor-id="interpretation">Interpretation</h2>
+<p>The high utilization rate in internal medicine could indicate a greater need for beds or staff in this area. However, specific recommendations for action cannot be derived from these data, but can be discussed in further planning.</p>
+
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

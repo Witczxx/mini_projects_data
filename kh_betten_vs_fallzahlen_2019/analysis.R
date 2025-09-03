@@ -1,9 +1,10 @@
-# Loading Libraries
+# Lade Bibliotheken
 library(tidyverse)
 library(viridis)
 
-# Creating Tibble for the hospital dataset of 2019 
-# [Source: Statistisches Bundesamt (Destatis, 2022)]
+# Erstellen des Krankenhaus-Datensatzes (2019)
+# Quelle: Statistisches Bundesamt (Destatis), 
+# zitiert nach Krankenhausreport 2022
 KHR_2019 <- tribble(
   ~Abteilung,  ~Abt_Anzahl, ~Abt_Betten, ~Nutzungsgrad, ~Fallzahl, ~Avg_Verweildauer,
   "Innere Medizin", 1047, 111481, 78.1, 5889078, 5.4,
@@ -45,8 +46,9 @@ KHR_2019 <- tribble(
   "Sonstige Fachabteilung", 305, 6481, 73.5, 269292, 6.5
 )
 
-# Creating Tibble for the hospital dataset of 2019 
-# [Source: Statistisches Bundesamt (Destatis, 2024)]
+# Erstellen des Krankenhaus-Datensatzes (2022)
+# Quelle: Statistisches Bundesamt (Destatis), 
+# zitiert nach Krankenhausreport 2024
 KHR_2022 <- tribble(
   ~Abteilung,  ~Abt_Anzahl, ~Abt_Betten, ~Nutzungsgrad, ~Fallzahl, ~Avg_Verweildauer,
   "Innere Medizin", 1002, 102760, 69.6, 4881453, 5.3,
@@ -88,75 +90,126 @@ KHR_2022 <- tribble(
   "Sonstige Fachabteilung", 306, 6677, 65.3, 283321, 5.6
 )
 
-# Overview of Bednumbers by ward
+# Überblick Datensatz
+head(KHR_2019)
+
+# Übersicht Bettenzahl pro Station
 KHR_2019 |> 
   mutate(Abteilung = fct_reorder(Abteilung, Abt_Betten)) |> 
   ggplot(aes(y = Abteilung, x = Abt_Betten)) +
-  geom_col()
+  geom_col() +
+  labs(
+    title = "Bettenzahlen nach Fachabteilung (2019)",
+    x = "Anzahl der Betten",
+    y = "Fachabteilung",
+    caption = "Quelle: Statistisches Bundesamt (Destatis, 2021)") +
+  theme_minimal()
 
-# Overview of Cases by ward
+# Übersicht Fallzahl pro Station
 KHR_2019 |> 
   mutate(Abteilung = fct_reorder(Abteilung, Fallzahl)) |> 
   ggplot(aes(y = Abteilung, x = Fallzahl)) +
-  geom_col()
+  geom_col() +
+  labs(
+    title = "Fallzahlen nach Fachabteilung (2019)",
+    x = "Fallzahl",
+    y = "Fachabteilung",
+    caption = "Quelle: Statistisches Bundesamt (Destatis, 2021)") +
+  theme_minimal()
 
-# Bednumber/Cases Analysis: There is a clear relation
+# Korrelationsanalyse - Fallzahl/Bettenzahl
 ggplot(KHR_2019, aes(x = Fallzahl, y = Abt_Betten)) +
-  geom_jitter() +
-  geom_smooth()
+  geom_point(alpha = 0.6, color = "steelblue") +
+  geom_smooth(method = "lm", color = "red", se = TRUE) +
+  labs(
+    title = "Beziehung zwischen Fallzahlen und Bettenzahlen (2019)",
+    x = "Fallzahlen",
+    y = "Bettenzahlen",
+    caption = "Quelle: Statistisches Bundesamt (Destatis, 2021)") +
+  theme_minimal()
 
-
-?fct_reorder
-# Calculations for Visualization
+# Top 10 Abteilungen: 
+# 80 % der Fallzahlen und entsprechende Bettenzahlen (2019)
+### Rechnung
 KHR_2019_long <- KHR_2019 |> 
-  mutate(Abteilung = fct_reorder(Abteilung, Fallzahl, .desc = TRUE)) |> # Arranging wards by case-numbers
-  rename(Bettenzahl = Abt_Betten) |> # better readability in plot
+  # Sortiere Stationen nach Fallzahlen statt alphabetisch
+  mutate(Abteilung = fct_reorder(Abteilung, Fallzahl, .desc = TRUE)) |> 
+  # Für bessere Lesbarkeit in der Visualisierung
+  rename(Bettenzahl = Abt_Betten) |> 
+  # Top 80% der Abteilungen
   arrange(desc(Fallzahl)) |>
   mutate(rel_cumsum_Fallzahl = cumsum(Fallzahl) / sum(Fallzahl)) |>
-  filter(rel_cumsum_Fallzahl <= 0.8) |> # filtering top 80% of wards [reduced ward-nr of 37 to 10]
+  filter(rel_cumsum_Fallzahl <= 0.8) |> 
+  # 2 Hauptvariabel-Titel werden zu Spalten im Tibble 
   pivot_longer(cols = c(Bettenzahl, Fallzahl),
                names_to = "Kennzahl",
-               values_to = "Wert") |> # 2 main variable titles become rows in the tibble
+               values_to = "Wert") |> 
+  # Bug-Fix: paste0() funktionierte nicht - Rechnung wurde ausgegliedert
   group_by(Kennzahl) |>
-  mutate(Anteil = Wert / sum(Wert)) # Bug-Fix: paste0() was not working - put calculation out of plot
-
-# Creating the Plot
-  ggplot(data = KHR_2019_long, aes(x = Kennzahl, y = Wert, fill = Abteilung)) +
-    geom_col(position = "fill") +  # position = "fill" -> all values scale to 100% independently
-    geom_text(data = filter(KHR_2019_long, Kennzahl == "Fallzahl"), # Fallzahl separated (cause different scale)
-              aes(label = paste0(round(Anteil * 100, 0), "%")), # calculation oustources - Bug-Fix
-                  position = position_fill(vjust = 0.5), # necesarry to define positioning / filling the value
+  mutate(Anteil = Wert / sum(Wert)) 
+### Visualisierung
+  ggplot(data = KHR_2019_long, aes(
+    x = Kennzahl, y = Wert, fill = Abteilung)) +
+    # Alle Variablen skalieren unabhängig bis 100% dank position = "fill"
+    geom_col(position = "fill") +  
+    # Fallzahlen separiert (skalieren unterschiedlich)
+    geom_text(data = filter(KHR_2019_long, Kennzahl == "Fallzahl"), 
+              # Rechnung wurde ausgegliedert - Bug-Fix
+              aes(label = paste0(round(Anteil * 100, 0), "%")), 
+                  # Notwendig, damit Zahl korrekt Diagramm überlappt
+                  position = position_fill(vjust = 0.5), 
                   color = "white",
                   size = 3) +
-    geom_text(data = filter(KHR_2019_long, Kennzahl == "Bettenzahl"), # Bettenzahl separated (cause different scale)
-              aes(label = paste0(round(Anteil * 100, 0), "%")), # calculation oustources - Bug-Fix
-                  position = position_fill(vjust = 0.5), # necesarry to define positioning / filling the value
+    # Bettenzahlen separiert (skalieren unterschiedlich)
+    geom_text(data = filter(KHR_2019_long, Kennzahl == "Bettenzahl"), 
+              # Rechnung wurde ausgegliedert - Bug-Fix
+              aes(label = paste0(round(Anteil * 100, 0), "%")), 
+                  # Notwendig, damit Zahl korrekt Diagramm überlappt
+                  position = position_fill(vjust = 0.5), 
                   color = "white", 
                   size = 3) +
     scale_y_continuous(labels = scales::percent) +
     theme_minimal() +
-    scale_fill_viridis_d(option = "turbo", direction = -1) + # coloring scheme [viridis library]
+    # Farbschema [viridis Bibliothek]
+    scale_fill_viridis_d(option = "turbo", direction = -1) + 
     labs(x = "", y = "", 
-         title = "Verteilung von Fallzahlen und Betten in deutschen Krankenhäusern (2019)",
-         subtitle = "Top 10 Abteilungen, die zusammen 80% aller Fallzahlen abdecken",
+         title = "Verteilung von Fallzahlen und Betten 
+         in deutschen Krankenhaus-Stationen (2019)",
+         subtitle = "Top 10 Abteilungen, 
+         die zusammen 80% aller Fallzahlen abdecken",
          caption = "Quelle: Statistisches Bundesamt (Destatis, 2021)")
 
 
-# Psychiatry - Explanation for low case number with secondary variable Avg_Verweildauer
+# Analyse der Verweildauer: Psychiatrie als Ausreißer
 KHR_2019 |> 
-   arrange(desc(Fallzahl)) |>
-  mutate(rel_cumsum_Fallzahl = cumsum(Fallzahl) / sum(Fallzahl)) |> 
-  filter(rel_cumsum_Fallzahl <= 0.8) |> 
-  mutate(Abteilung = fct_reorder(Abteilung, Avg_Verweildauer)) |> 
-  ggplot(aes(y = Abteilung, x = Avg_Verweildauer)) +
-  geom_col()
+   arrange(desc(Fallzahl)) |> 
+   mutate(rel_cumsum_Fallzahl = cumsum(Fallzahl) / sum(Fallzahl)) |> 
+   filter(rel_cumsum_Fallzahl <= 0.8) |> 
+   mutate(Abteilung = fct_reorder(Abteilung, Avg_Verweildauer)) |> 
+   ggplot(aes(y = Abteilung, x = Avg_Verweildauer)) +
+   geom_col() +
+   labs(
+     x = "Durchschnittliche Verweildauer (Tage)",
+     y = "Abteilung",
+     title = "Durchschnittliche Verweildauer in Top-10-Abteilungen",
+     subtitle = "Psychiatrie fällt durch 
+     besonders lange Verweildauer auf") +
+   theme_minimal()
 
-# No real explanation for higher case numbers in Internal ward to ind
+# Analyse der Nutzungsgrade: Innere Meidzin
 KHR_2019 |> 
-   arrange(desc(Fallzahl)) |>
-  mutate(rel_cumsum_Fallzahl = cumsum(Fallzahl) / sum(Fallzahl)) |> 
-  filter(rel_cumsum_Fallzahl <= 0.8) |>
-  mutate(Abteilung = fct_reorder(Abteilung, Nutzungsgrad)) |> 
-  ggplot(aes(y = Abteilung, x = Nutzungsgrad)) +
-  geom_col()
+   arrange(desc(Fallzahl)) |> 
+   mutate(rel_cumsum_Fallzahl = cumsum(Fallzahl) / sum(Fallzahl)) |> 
+   filter(rel_cumsum_Fallzahl <= 0.8) |> 
+   mutate(Abteilung = fct_reorder(Abteilung, Nutzungsgrad)) |> 
+   ggplot(aes(y = Abteilung, x = Nutzungsgrad)) +
+   geom_col() +
+   labs(
+     x = "Nutzungsgrad (%)",
+     y = "Abteilung",
+     title = "Durchschnittlicher Betten-Nutzungsgrad 
+     in Top-10-Abteilungen",
+     subtitle = "Innere Medizin und Kardiologie fallen durch 
+     hohe Auslastung auf") +
+   theme_minimal()
 
